@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f8f7f4">
+    <meta name="description" content="A little more joy in every plan. Organize your next celebration with Gatherly.">
+    <title>Gatherly — make room for the fun</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="planner-core.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="#" aria-label="Gatherly home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" fill="none"><path d="M20 4.5c2.1 0 3.2 5.5 4.9 6.2s6.7-2.7 8.2-1.2-2 6.4-1.2 8.2 6.2 2.8 6.2 4.9-5.5 3.2-6.2 4.9 2.7 6.7 1.2 8.2-6.4-2-8.2-1.2-2.8 6.2-4.9 6.2-3.2-5.5-4.9-6.2-6.7 2.7-8.2 1.2 2-6.4 1.2-8.2S2 24.7 2 22.6s5.5-3.2 6.2-4.9-2.7-6.7-1.2-8.2 6.4 2 8.2 1.2S17.9 4.5 20 4.5Z" transform="translate(1 -2)" fill="currentColor"/><circle cx="21" cy="20" r="5.2" fill="#F8F7F4"/></svg>
+          </span>
+          <span class="brand-name">gatherly<span>.</span></span>
+        </a>
+
+        <div class="workspace-label">YOUR WORKSPACE</div>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a class="nav-link active" href="#overview" aria-current="page">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>
+            Overview
+          </a>
+          <a class="nav-link" href="#planning-checklist">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h10M9 12h10M9 19h10M4.5 5h.01M4.5 12h.01M4.5 19h.01"/></svg>
+            My checklist <span class="nav-count" id="nav-count">6</span>
+          </a>
+          <a class="nav-link" href="#budget">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v17m5-13.5c-.8-1.2-2.3-2-4.6-2-2.8 0-4.5 1.4-4.5 3.3 0 5 9.1 2.4 9.1 7.4 0 2-1.8 3.7-4.8 3.7-2.2 0-4-.8-5.2-2.3"/></svg>
+            Budget
+          </a>
+          <a class="nav-link" href="#vendor-checklist-title">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5 5 4.5h14l1.5 5m-17 0h17v10h-17v-10Zm0 0a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M9.5 19.5v-5h5v5"/></svg>
+            Vendors
+          </a>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+        <div class="workspace-label event-label">YOUR EVENTS <button class="icon-button mini-add" type="button" id="new-event-shortcut" aria-label="Create an event"><span aria-hidden="true">+</span></button></div>
+        <nav aria-label="Saved events"><ul id="event-list" class="event-list"></ul></nav>
+        <button class="new-event-link" type="button" id="new-event-link"><span aria-hidden="true">+</span> Start a new event</button>
+
+        <div class="sidebar-bottom">
+          <div class="help-card">
+            <div class="help-sparkle" aria-hidden="true">✳</div>
+            <strong>Big day coming up?</strong>
+            <p>Our little AI helper has lots of ideas.</p>
+            <a href="#ideas">Meet your planning buddy <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="profile-button">
+            <span class="avatar">AM</span>
+            <span class="profile-copy"><strong>Alex Morgan</strong><small>Free plan</small></span>
+            <span class="profile-more" aria-hidden="true">···</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content" id="overview">
+        <header class="topbar">
+          <button class="mobile-menu icon-button" type="button" id="mobile-menu" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+          <div class="breadcrumb">My events <span aria-hidden="true">/</span> <strong>Emma's 30th</strong></div>
+          <div class="topbar-actions">
+            <span class="saved-status" id="saved-status" aria-live="polite"><span class="saved-dot"></span> Your plan is ready</span>
+            <button class="share-button" type="button" id="share-button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 13v6.5h14V13"/></svg>
+              Share plan
+            </button>
+          </div>
+        </header>
+
+        <div class="page-content">
+          <section class="welcome-row" aria-labelledby="welcome-title">
+            <div>
+              <div class="eyebrow"><span class="eyebrow-star" aria-hidden="true">✳</span> YOUR HAPPY PLACE FOR PLANNING</div>
+              <h1 id="welcome-title">Let’s make it <span>memorable.</span></h1>
+              <p class="welcome-copy">One good plan, a little less chaos, and a lot more <em>“that was so fun.”</em></p>
+            </div>
+            <button class="primary-button" id="generate-button" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Zm7 12 .9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>
+              Get fresh ideas
+            </button>
+          </section>
+
+          <section class="event-hero" aria-labelledby="event-title">
+            <div class="hero-content">
+              <div class="event-type-pill"><span class="pill-dot"></span><span id="event-kind-label">THE MAIN EVENT</span></div>
+              <h2 id="event-title"><span id="event-title-name">Emma’s 30th</span><br><span id="event-title-kind">Birthday</span></h2>
+              <p class="event-meta"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M7.5 3v4m9-4v4M4 9.5h16"/></svg> <time id="event-date-display" datetime="2026-10-24">Saturday, October 24, 2026</time></span><i aria-hidden="true"></i><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 10c0 5-7.5 11-7.5 11s-7.5-6-7.5-11a7.5 7.5 0 1 1 15 0Z"/><circle cx="12" cy="10" r="2.3"/></svg> <span id="event-location-display">Brooklyn, NY</span></span></p>
+              <div class="countdown"><span class="countdown-number" id="days-count">—</span><span class="countdown-label">DAYS TO GO</span><span class="countdown-divider"></span><span class="countdown-note">Plenty of time to make magic ✨</span></div>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+              <div class="art-sun"></div>
+              <div class="art-orbit orbit-one"></div>
+              <div class="art-orbit orbit-two"></div>
+              <div class="art-flower flower-one"><i></i></div>
+              <div class="art-flower flower-two"><i></i></div>
+              <div class="art-leaf leaf-one"></div>
+              <div class="art-leaf leaf-two"></div>
+              <span class="art-sparkle sparkle-one">✳</span>
+              <span class="art-sparkle sparkle-two">✦</span>
+              <span class="art-sparkle sparkle-three">✧</span>
+              <div class="art-caption"><span>the big</span><strong>THIRTY!</strong><span>celebration</span></div>
+            </div>
+            <div class="hero-bottom">
+              <span><span class="people-icon" aria-hidden="true">♧</span> <strong id="guest-count">38</strong> guests invited</span>
+              <button type="button" class="text-button" id="edit-event-button">Edit event details <span aria-hidden="true">↗</span></button>
+            </div>
+          </section>
+
+          <section class="stats-grid" aria-label="Event at a glance">
+            <article class="stat-card budget-stat" id="budget">
+              <div class="stat-top"><span class="stat-icon coral-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18m5-14c-.8-1.2-2.3-2-4.6-2-2.8 0-4.5 1.4-4.5 3.3 0 5 9.1 2.4 9.1 7.4 0 2-1.8 3.7-4.8 3.7-2.2 0-4-.8-5.2-2.3"/></svg></span><span class="stat-label">YOUR BUDGET</span><button class="more-button" id="budget-edit-button" type="button" aria-label="Edit event budget">···</button></div>
+              <div class="stat-value"><strong id="budget-spent">$2,840</strong><span>of <span id="budget-total">$5,000</span></span></div>
+              <progress class="progress-track budget-progress" id="budget-progress" aria-label="Budget spent" value="57" max="100">57%</progress>
+              <div class="stat-foot"><span><span class="status-dot" id="budget-status-dot"></span> <span id="budget-status-label">Looking good!</span></span><span id="budget-remaining">$2,160 left</span></div>
+            </article>
+            <article class="stat-card checklist-stat" id="checklist">
+              <div class="stat-top"><span class="stat-icon lilac-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span><span class="stat-label">YOUR CHECKLIST</span></div>
+              <div class="stat-value"><strong id="tasks-completed">8</strong><span>of <span id="tasks-total">14</span> tasks done</span></div>
+              <progress class="progress-track checklist-progress" id="checklist-progress" aria-label="Checklist tasks completed" value="57" max="100">57%</progress>
+              <div class="stat-foot"><span><span class="status-dot lilac-status"></span> You’re on a roll</span><a href="#planning-checklist">See your list <span aria-hidden="true">→</span></a></div>
+            </article>
+            <article class="stat-card vendors-stat" id="vendors">
+              <div class="stat-top"><span class="stat-icon mint-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 9.5 5 4.5h14l1.5 5m-17 0h17v10h-17v-10Zm0 0a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg></span><span class="stat-label">YOUR DREAM TEAM</span></div>
+              <div class="stat-value"><strong id="vendor-booked-summary">3</strong><span>vendors booked</span></div>
+              <div class="vendor-avatars" aria-label="Booked vendors: catering, venue, photography">
+                <span class="vendor-avatar vendor-one">🍰</span><span class="vendor-avatar vendor-two">🌿</span><span class="vendor-avatar vendor-three">📸</span><span class="vendor-avatar vendor-add">+</span>
+                <span class="vendor-label">Your dream team is growing</span>
+              </div>
+              <div class="stat-foot"><span><span class="status-dot mint-status"></span> <span id="vendor-remaining-summary">2 more to find</span></span><a href="#vendor-checklist-title">Explore vendors <span aria-hidden="true">→</span></a></div>
+            </article>
+          </section>
+
+          <div class="lower-grid">
+            <section class="panel checklist-panel" id="planning-checklist" aria-labelledby="checklist-title">
+              <div class="panel-heading">
+                <div><div class="section-kicker">THE LITTLE THINGS</div><h2 id="checklist-title">Your planning checklist <span class="heading-spark" aria-hidden="true">✳</span></h2></div>
+                <button class="subtle-button" type="button" id="add-task-button"><span aria-hidden="true">+</span> Add a task</button>
+              </div>
+              <div class="task-tabs" role="group" aria-label="Filter checklist tasks">
+                <button type="button" class="task-tab selected" data-filter="all" aria-pressed="true">All <span>14</span></button>
+                <button type="button" class="task-tab" data-filter="this-week" aria-pressed="false">This week <span>3</span></button>
+                <button type="button" class="task-tab" data-filter="done" aria-pressed="false">Done <span>8</span></button>
+              </div>
+              <ul class="task-list" id="task-list">
+                <li class="task-item" data-category="this-week" data-done="false">
+                  <button class="task-check" type="button" aria-label="Mark Book your venue as complete" aria-pressed="false"></button>
+                  <span class="task-copy"><strong>Book your venue</strong><small><span class="category-tag tag-venue">VENUE</span> <span class="task-due">Due Oct 28</span></small></span>
+                  <span class="task-priority">Must do</span>
+                  <button class="task-more" type="button" aria-label="More options for Book your venue">···</button>
+                </li>
+                <li class="task-item" data-category="this-week" data-done="false">
+                  <button class="task-check" type="button" aria-label="Mark Send invites as complete" aria-pressed="false"></button>
+                  <span class="task-copy"><strong>Send out the invites</strong><small><span class="category-tag tag-guests">GUESTS</span> <span class="task-due">Due Oct 30</span></small></span>
+                  <span class="task-priority">Must do</span>
+                  <button class="task-more" type="button" aria-label="More options for Send out the invites">···</button>
+                </li>
+                <li class="task-item completed-task" data-category="done" data-done="true">
+                  <button class="task-check checked" type="button" aria-label="Mark Pick a party theme as incomplete" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8 3 3 6-6"/></svg></button>
+                  <span class="task-copy"><strong>Pick a party theme</strong><small><span class="category-tag tag-style">THE LITTLE DETAILS</span> <span class="task-due">Done yesterday</span></small></span>
+                  <span class="task-priority priority-done">Done</span>
+                  <button class="task-more" type="button" aria-label="More options for Pick a party theme">···</button>
+                </li>
+                <li class="task-item last-visible" data-category="this-week" data-done="false">
+                  <button class="task-check" type="button" aria-label="Mark Taste-test birthday cake as complete" aria-pressed="false"></button>
+                  <span class="task-copy"><strong>Taste-test birthday cake</strong><small><span class="category-tag tag-food">FOOD & DRINK</span> <span class="task-due">Due Nov 2</span></small></span>
+                  <span class="task-priority">Nice to do</span>
+                  <button class="task-more" type="button" aria-label="More options for Taste-test birthday cake">···</button>
+                </li>
+              </ul>
+              <button class="view-all-button" type="button" id="view-all-tasks">View all 14 tasks <span aria-hidden="true">→</span></button>
+            </section>
+
+            <section class="panel right-panel" aria-labelledby="ideas-title">
+              <div class="ideas-panel" id="ideas">
+                <div class="ideas-topline"><span class="ai-badge"><span aria-hidden="true">✦</span><span class="ai-badge-label">CURATED EVENT IDEAS</span></span></div>
+                <h2 id="ideas-title">A little idea<br>for your <em>big day.</em></h2>
+                <p class="ideas-description" id="idea-description">Get a tailored idea for your event. When AI is configured, event details you enter are sent to the configured AI provider to generate your suggestion.</p>
+                <p class="idea-source" id="idea-source" aria-live="polite">Ideas start with your event type and budget.</p>
+                <div class="idea-tags"><span>#personal</span><span>#low-lift</span><span>#crowd-pleaser</span></div>
+                <div class="ideas-actions"><button class="idea-refresh" id="refresh-idea" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5m10.2-2A7.5 7.5 0 0 0 6.5 6L4 8m16 8-2.5 2a7.5 7.5 0 0 1-12.7-4"/></svg> Another idea</button><button class="save-idea" id="save-idea" type="button" aria-pressed="false" aria-label="Save this idea"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 8.8c0 5.6-8.5 10.2-8.5 10.2S3.5 14.4 3.5 8.8A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 8.5 1.6Z"/></svg></button></div>
+                <details class="saved-ideas">
+                  <summary id="saved-ideas-summary">Saved ideas (0)</summary>
+                  <ul id="saved-ideas-list"></ul>
+                </details>
+              </div>
+              <div class="vendor-recommendation">
+                <div class="rec-icon" aria-hidden="true">✳</div>
+                <div class="rec-copy"><span>YOUR VENDOR WISHLIST</span><strong id="vendor-wishlist-count">Two more to find</strong><small>Add your favorite local event vendors.</small></div>
+              </div>
+            </section>
+          </div>
+          <div class="planning-grid">
+            <section class="panel timeline-panel" aria-labelledby="timeline-title">
+              <div class="panel-heading">
+                <div><div class="section-kicker">THE DAY, AT A GLANCE</div><h2 id="timeline-title">A little flow for the festivities</h2></div>
+                <button class="subtle-button" type="button" id="add-moment"><span aria-hidden="true">+</span> Add a moment</button>
+              </div>
+              <ol class="timeline-list" id="timeline-list">
+                <li><time datetime="16:00">4:00 <span>PM</span></time><span class="timeline-dot"></span><div><strong>Doors open & welcome drinks</strong><small>Let the catching up begin</small></div></li>
+                <li><time datetime="17:00">5:00 <span>PM</span></time><span class="timeline-dot"></span><div><strong>Photos & a little mingling</strong><small>Snap a pic before dinner</small></div></li>
+                <li><time datetime="18:00">6:00 <span>PM</span></time><span class="timeline-dot"></span><div><strong>Food is served</strong><small>Good food, even better company</small></div></li>
+                <li><time datetime="19:30">7:30 <span>PM</span></time><span class="timeline-dot"></span><div><strong>Cake, candles & birthday wishes</strong><small>Make a wish, Emma!</small></div></li>
+              </ol>
+            </section>
+            <section class="panel vendor-panel" aria-labelledby="vendor-checklist-title">
+              <div class="panel-heading">
+                <div><div class="section-kicker">GOOD PEOPLE, GOOD PLANS</div><h2 id="vendor-checklist-title">Vendor checklist</h2></div>
+                <span class="vendor-count" id="vendor-count">3 of 5 booked</span>
+              </div>
+              <p class="vendor-intro">Estimates update your budget when you book a vendor.</p>
+              <ul class="vendor-list">
+                <li><span class="vendor-list-icon booked-vendor" aria-hidden="true">⌂</span><span class="vendor-list-copy"><strong>Venue</strong><small>The Foundry · Brooklyn</small></span><span class="vendor-cost">$1,200</span><button class="vendor-check booked" type="button" aria-label="Mark Venue as unbooked" aria-pressed="true">✓</button></li>
+                <li><span class="vendor-list-icon booked-vendor" aria-hidden="true">✿</span><span class="vendor-list-copy"><strong>Catering</strong><small>Bloom & Platter</small></span><span class="vendor-cost">$1,100</span><button class="vendor-check booked" type="button" aria-label="Mark Catering as unbooked" aria-pressed="true">✓</button></li>
+                <li><span class="vendor-list-icon booked-vendor" aria-hidden="true">◉</span><span class="vendor-list-copy"><strong>Photographer</strong><small>Jules Rivera</small></span><span class="vendor-cost">$540</span><button class="vendor-check booked" type="button" aria-label="Mark Photographer as unbooked" aria-pressed="true">✓</button></li>
+                <li><span class="vendor-list-icon pending-vendor" aria-hidden="true">♫</span><span class="vendor-list-copy"><strong>Music & DJ</strong><small>On your vendor wishlist</small></span><span class="vendor-cost">To find</span><button class="vendor-check" type="button" aria-label="Mark Music and DJ as booked" aria-pressed="false">+</button></li>
+                <li><span class="vendor-list-icon pending-vendor" aria-hidden="true">❀</span><span class="vendor-list-copy"><strong>Flowers</strong><small>On your vendor wishlist</small></span><span class="vendor-cost">To find</span><button class="vendor-check" type="button" aria-label="Mark Flowers as booked" aria-pressed="false">+</button></li>
+              </ul>
+            </section>
+          </div>
+          <footer class="page-footer"><span>Made for getting together <span aria-hidden="true">♥</span></span><span>Need a hand? <a href="mailto:hello@gatherly.example">We’re all ears</a></span></footer>
+        </div>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <dialog class="event-dialog" id="event-dialog" aria-labelledby="dialog-title">
+      <form id="event-form">
+        <button class="dialog-close" type="button" id="close-dialog" aria-label="Close dialog">×</button>
+        <div class="dialog-spark" aria-hidden="true">✳</div>
+        <div class="section-kicker">LET’S GET THIS PARTY STARTED</div>
+        <h2 id="dialog-title"><span id="dialog-title-first">What are we</span><br><em id="dialog-title-second">celebrating?</em></h2>
+        <label for="event-name">Give your event a name</label>
+        <input id="event-name" name="event-name" type="text" placeholder="e.g. Maya’s graduation party" required maxlength="60" autocomplete="off">
+        <label for="event-kind">What kind of get-together?</label>
+        <select id="event-kind" name="event-kind"><option>Birthday</option><option>Wedding</option><option>Community event</option><option>Baby shower</option><option>Other celebration</option></select>
+        <label for="event-date">When’s the big day?</label>
+        <input id="event-date" name="event-date" type="date" required>
+        <label for="event-location">Where are we gathering?</label>
+        <input id="event-location" name="event-location" type="text" placeholder="City or venue" maxlength="100" autocomplete="address-level2">
+        <label for="event-guests">How many guests?</label>
+        <input id="event-guests" name="event-guests" type="number" min="0" max="100000" step="1" required>
+        <div class="dialog-actions"><button class="secondary-button" type="button" id="cancel-event-dialog">Cancel</button><button class="primary-button" type="submit">Save event <span aria-hidden="true">→</span></button></div>
+      </form>
+    </dialog>
+    <dialog class="event-dialog" id="budget-dialog" aria-labelledby="budget-dialog-title">
+      <form id="budget-form">
+        <button class="dialog-close" type="button" id="close-budget-dialog" aria-label="Close budget dialog">×</button>
+        <div class="dialog-spark" aria-hidden="true">✳</div>
+        <div class="section-kicker">A PLAN FOR EVERY PENNY</div>
+        <h2 id="budget-dialog-title">Keep your budget<br><em>in the happy zone.</em></h2>
+        <label for="budget-total-input">Your total event budget</label>
+        <input id="budget-total-input" name="budget-total" type="number" min="0" max="10000000" step="0.01" required inputmode="decimal">
+        <label for="budget-spent-input">Amount spent so far</label>
+        <input id="budget-spent-input" name="budget-spent" type="number" min="0" max="10000000" step="0.01" required inputmode="decimal">
+        <div class="dialog-actions"><button class="secondary-button" type="button" id="cancel-budget-dialog">Cancel</button><button class="primary-button" type="submit">Save budget</button></div>
+      </form>
+    </dialog>
+  </body>
+</html>
