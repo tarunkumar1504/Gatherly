@@ -74,6 +74,39 @@ const VENDORS = [
   { name: "Flowers", detail: "On your vendor wishlist", cost: 160, bookedLabel: "$160 est.", icon: "❀" },
 ];
 
+const TIMELINE_TEMPLATES = {
+  Birthday: [
+    ["4:00 PM", "Doors open & welcome drinks", "Let the catching up begin"],
+    ["5:00 PM", "Photos & a little mingling", "Snap a pic before dinner"],
+    ["6:00 PM", "Food is served", "Good food, even better company"],
+    ["7:30 PM", "Cake, candles & birthday wishes", "Make a wish!"],
+  ],
+  Wedding: [
+    ["3:30 PM", "Guest arrival & ceremony seating", "Welcome your guests"],
+    ["4:00 PM", "Ceremony", "A moment for the happy couple"],
+    ["5:00 PM", "Drinks, photos & congratulations", "Take a moment to celebrate"],
+    ["6:30 PM", "Dinner, toasts & dancing", "Good food, heartfelt speeches, and a first dance"],
+  ],
+  "Community event": [
+    ["12:00 PM", "Welcome & neighbor check-in", "Make everyone feel at home"],
+    ["1:00 PM", "Community activities", "Something fun for every age"],
+    ["2:00 PM", "Shared food & refreshments", "Bring neighbors together"],
+    ["3:30 PM", "Thank volunteers & tidy up", "Leave the space ready for next time"],
+  ],
+  "Baby shower": [
+    ["1:00 PM", "Welcome & refreshments", "Help everyone settle in"],
+    ["1:30 PM", "Food & catching up", "Make time for conversation"],
+    ["2:30 PM", "Wishes & a relaxed activity", "Celebrate the growing family"],
+    ["3:30 PM", "Cake & thank-yous", "Close out the afternoon"],
+  ],
+  "Other celebration": [
+    ["4:00 PM", "Welcome & arrivals", "Make time to greet your guests"],
+    ["5:00 PM", "Food & refreshments", "Good food, good company"],
+    ["6:00 PM", "The main celebration", "Bring everyone together"],
+    ["7:00 PM", "Closing thanks & farewells", "End on a happy note"],
+  ],
+};
+
 const browserStorage = (() => {
   try {
     return window.localStorage;
@@ -81,11 +114,16 @@ const browserStorage = (() => {
     return null;
   }
 })();
+
 const workspace = planner.loadWorkspace(browserStorage);
 let state = workspace.events.find((event) => event.id === workspace.activeEventId) || workspace.events[0];
 const taskList = document.querySelector("#task-list");
 const toast = document.querySelector("#toast");
-const money = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 });
+const moneyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 });
+const shortDateFormatter = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
+const fullDateFormatter = new Intl.DateTimeFormat(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+const longDateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: "long" });
+
 let activeFilter = "all";
 let visibleAllTasks = false;
 let aiConfigured = false;
@@ -93,6 +131,10 @@ let curatedIdeaIndex = 0;
 let activeIdeaController = null;
 let toastTimer;
 
+/**
+ * Displays an accessible live status announcement via toast notification.
+ * @param {string} message - Announcement text.
+ */
 function announce(message) {
   toast.textContent = message;
   toast.classList.add("visible");
@@ -100,6 +142,9 @@ function announce(message) {
   toastTimer = window.setTimeout(() => toast.classList.remove("visible"), 3000);
 }
 
+/**
+ * Serializes and saves current workspace state to persistent browser storage.
+ */
 function persistState() {
   const savedStatus = document.querySelector("#saved-status");
   try {
@@ -115,11 +160,27 @@ function persistState() {
   }
 }
 
+/**
+ * Returns today's date formatted as YYYY-MM-DD in the local timezone.
+ * @returns {string} ISO date string.
+ */
 function getLocalDateValue() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
+/**
+ * Computes a JSON signature for change detection during async operations.
+ * @param {Object} plan - Event plan.
+ * @returns {string} Stringified event and budget signature.
+ */
+function getEventSignature(plan) {
+  return JSON.stringify({ ...plan.event, budget: plan.budget });
+}
+
+/**
+ * Renders the sidebar event switcher navigation list.
+ */
 function renderEventNavigation() {
   const eventList = document.querySelector("#event-list");
   eventList.replaceChildren();
@@ -137,7 +198,7 @@ function renderEventNavigation() {
     const name = document.createElement("strong");
     name.textContent = event.event.name;
     const detail = document.createElement("small");
-    detail.textContent = `${event.event.kind} · ${new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(`${event.event.date}T12:00:00`))}`;
+    detail.textContent = `${event.event.kind} · ${shortDateFormatter.format(new Date(`${event.event.date}T12:00:00`))}`;
     copy.append(name, detail);
     button.append(dot, copy);
     button.addEventListener("click", () => {
@@ -159,6 +220,9 @@ function renderEventNavigation() {
   });
 }
 
+/**
+ * Orchestrates full rendering of all dashboard components.
+ */
 function renderDashboard() {
   renderEvent();
   renderBudget();
@@ -170,6 +234,9 @@ function renderDashboard() {
   setIdea(planner.getCuratedIdea(state.event, state.budget, curatedIdeaIndex));
 }
 
+/**
+ * Renders the hero card containing event title, date, countdown, and art.
+ */
 function renderEvent() {
   const event = state.event;
   document.querySelector("#event-title-name").textContent = event.name;
@@ -178,7 +245,7 @@ function renderEvent() {
   document.querySelector(".breadcrumb strong").textContent = event.name;
   document.title = `${event.name} — Gatherly`;
   const birthdayAge = event.kind === "Birthday" ? event.name.match(/\b(\d{1,3})(?:st|nd|rd|th)\b/i) : null;
-  const celebrationArt = event.kind === "Birthday" ? birthdayAge ? `${birthdayAge[1]}!` : "PARTY!"
+  const celebrationArt = event.kind === "Birthday" ? (birthdayAge ? `${birthdayAge[1]}!` : "PARTY!")
     : event.kind === "Wedding" ? "LOVE!"
       : event.kind === "Community event" ? "TOGETHER!"
         : event.kind === "Baby shower" ? "BABY!"
@@ -188,7 +255,7 @@ function renderEvent() {
   renderEventNavigation();
   const date = document.querySelector("#event-date-display");
   date.dateTime = event.date;
-  date.textContent = new Intl.DateTimeFormat(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" }).format(new Date(`${event.date}T12:00:00`));
+  date.textContent = fullDateFormatter.format(new Date(`${event.date}T12:00:00`));
   document.querySelector("#event-location-display").textContent = event.location || "Location to be decided";
   document.querySelector("#guest-count").textContent = event.guests.toLocaleString();
 
@@ -209,20 +276,27 @@ function renderEvent() {
   }
 }
 
+/**
+ * Renders the budget overview card and progress bar.
+ */
 function renderBudget() {
   const { total, spent } = state.budget;
   const remaining = total - spent;
   const percent = planner.getBudgetProgress(spent, total);
-  document.querySelector("#budget-spent").textContent = money.format(spent);
-  document.querySelector("#budget-total").textContent = money.format(total);
-  document.querySelector("#budget-remaining").textContent = `${money.format(Math.abs(remaining))} ${remaining < 0 ? "over budget" : "left"}`;
+  document.querySelector("#budget-spent").textContent = moneyFormatter.format(spent);
+  document.querySelector("#budget-total").textContent = moneyFormatter.format(total);
+  document.querySelector("#budget-remaining").textContent = `${moneyFormatter.format(Math.abs(remaining))} ${remaining < 0 ? "over budget" : "left"}`;
   document.querySelector("#budget-status-label").textContent = remaining < 0 ? "Over your budget" : remaining === 0 ? "Budget fully allocated" : "Looking good!";
   document.querySelector("#budget-status-dot").classList.toggle("over-budget", remaining < 0);
   const progress = document.querySelector("#budget-progress");
   progress.value = percent;
-  progress.setAttribute("aria-valuetext", `${money.format(spent)} spent of ${money.format(total)}`);
+  progress.setAttribute("aria-valuetext", `${moneyFormatter.format(spent)} spent of ${moneyFormatter.format(total)}`);
 }
 
+/**
+ * Compiles the list of default, event-specific, and custom checklist tasks.
+ * @returns {Array<Object>} Unified task items.
+ */
 function getTasks() {
   const savedDone = state.completedTasks;
   const baseTasks = EVENT_TASKS[state.event.kind] || DEFAULT_TASKS;
@@ -236,7 +310,9 @@ function getTasks() {
       priority: state.isNew && task.priority === "Done" ? "Must do" : task.priority,
     })),
     ...state.customTasks.map((title) => ({
-      title, category: "THE LITTLE DETAILS", tag: "tag-style",
+      title,
+      category: "THE LITTLE DETAILS",
+      tag: "tag-style",
       due: savedDone[title] === true ? "Completed" : "Just added",
       priority: savedDone[title] === true ? "Done" : "Nice to do",
       filter: "later",
@@ -245,6 +321,9 @@ function getTasks() {
   ];
 }
 
+/**
+ * Updates task counters in summary stat cards and navigation badges.
+ */
 function updateTaskSummary() {
   const tasks = getTasks();
   const completed = tasks.filter((task) => task.done).length;
@@ -256,6 +335,9 @@ function updateTaskSummary() {
   progress.value = percentage;
 }
 
+/**
+ * Renders checklist tasks according to active filter and expansion state.
+ */
 function renderTasks() {
   const allTasks = getTasks();
   const filtered = allTasks.filter((task) => {
@@ -330,6 +412,9 @@ function renderTasks() {
   });
 }
 
+/**
+ * Renders the vendor booking checklist and syncs cost estimates with budget.
+ */
 function renderVendors() {
   const vendorList = document.querySelector(".vendor-list");
   vendorList.replaceChildren();
@@ -377,6 +462,10 @@ function renderVendors() {
   document.querySelector(".vendor-avatars").setAttribute("aria-label", `${count} of ${VENDORS.length} vendors booked`);
 }
 
+/**
+ * Sets current suggestion in the ideas card.
+ * @param {{ text: string, tags: string[], source: "ai"|"curated" }} idea - Idea to display.
+ */
 function setIdea(idea) {
   document.querySelector("#idea-description").textContent = idea.text;
   document.querySelector("#idea-source").textContent = idea.source === "ai"
@@ -394,6 +483,9 @@ function setIdea(idea) {
   renderSavedIdeas();
 }
 
+/**
+ * Renders the saved ideas collection list inside details disclosure.
+ */
 function renderSavedIdeas() {
   const list = document.querySelector("#saved-ideas-list");
   list.replaceChildren();
@@ -425,10 +517,13 @@ function renderSavedIdeas() {
   });
 }
 
+/**
+ * Requests a new event planning suggestion via backend AI proxy or curated fallback.
+ */
 async function getEventIdea() {
   const button = document.querySelector("#refresh-idea");
   const eventId = state.id;
-  const requestBody = JSON.stringify({ ...state.event, budget: state.budget });
+  const currentSignature = getEventSignature(state);
   const controller = new AbortController();
   let requestTimedOut = false;
   const timeout = window.setTimeout(() => {
@@ -443,12 +538,12 @@ async function getEventIdea() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       signal: controller.signal,
-      body: requestBody,
+      body: currentSignature,
     });
-    if (state.id !== eventId || JSON.stringify({ ...state.event, budget: state.budget }) !== requestBody) return;
+    if (state.id !== eventId || getEventSignature(state) !== currentSignature) return;
     if (response.ok) {
       const idea = await response.json();
-      if (state.id !== eventId || JSON.stringify({ ...state.event, budget: state.budget }) !== requestBody) return;
+      if (state.id !== eventId || getEventSignature(state) !== currentSignature) return;
       if (idea && typeof idea.text === "string" && Array.isArray(idea.tags)) {
         setIdea({ text: idea.text.slice(0, 800), tags: idea.tags.filter((tag) => typeof tag === "string" && /^#[a-z0-9-]{1,30}$/i.test(tag)).slice(0, 4), source: "ai" });
         announce("A new AI-generated idea is ready.");
@@ -471,8 +566,9 @@ async function getEventIdea() {
     button.disabled = false;
     document.querySelector("#generate-button").disabled = false;
   }
-  if (state.id !== eventId || JSON.stringify({ ...state.event, budget: state.budget }) !== requestBody) return;
-  setIdea(planner.getCuratedIdea(state.event, state.budget));
+  if (state.id !== eventId || getEventSignature(state) !== currentSignature) return;
+  curatedIdeaIndex += 1;
+  setIdea(planner.getCuratedIdea(state.event, state.budget, curatedIdeaIndex));
 }
 
 document.querySelectorAll(".task-tab").forEach((tab) => {
@@ -519,42 +615,13 @@ document.querySelector("#add-moment").addEventListener("click", () => {
   announce("Your moment is on the timeline.");
 });
 
+/**
+ * Renders the day-of celebration timeline sequence.
+ */
 function renderTimeline() {
   const timeline = document.querySelector("#timeline-list");
   timeline.replaceChildren();
-  const templates = {
-    Birthday: [
-      ["4:00 PM", "Doors open & welcome drinks", "Let the catching up begin"],
-      ["5:00 PM", "Photos & a little mingling", "Snap a pic before dinner"],
-      ["6:00 PM", "Food is served", "Good food, even better company"],
-      ["7:30 PM", "Cake, candles & birthday wishes", "Make a wish!"],
-    ],
-    Wedding: [
-      ["3:30 PM", "Guest arrival & ceremony seating", "Welcome your guests"],
-      ["4:00 PM", "Ceremony", "A moment for the happy couple"],
-      ["5:00 PM", "Drinks, photos & congratulations", "Take a moment to celebrate"],
-      ["6:30 PM", "Dinner, toasts & dancing", "Good food, heartfelt speeches, and a first dance"],
-    ],
-    "Community event": [
-      ["12:00 PM", "Welcome & neighbor check-in", "Make everyone feel at home"],
-      ["1:00 PM", "Community activities", "Something fun for every age"],
-      ["2:00 PM", "Shared food & refreshments", "Bring neighbors together"],
-      ["3:30 PM", "Thank volunteers & tidy up", "Leave the space ready for next time"],
-    ],
-    "Baby shower": [
-      ["1:00 PM", "Welcome & refreshments", "Help everyone settle in"],
-      ["1:30 PM", "Food & catching up", "Make time for conversation"],
-      ["2:30 PM", "Wishes & a relaxed activity", "Celebrate the growing family"],
-      ["3:30 PM", "Cake & thank-yous", "Close out the afternoon"],
-    ],
-    "Other celebration": [
-      ["4:00 PM", "Welcome & arrivals", "Make time to greet your guests"],
-      ["5:00 PM", "Food & refreshments", "Good food, good company"],
-      ["6:00 PM", "The main celebration", "Bring everyone together"],
-      ["7:00 PM", "Closing thanks & farewells", "End on a happy note"],
-    ],
-  };
-  const moments = templates[state.event.kind] || templates["Other celebration"];
+  const moments = TIMELINE_TEMPLATES[state.event.kind] || TIMELINE_TEMPLATES["Other celebration"];
   const entries = [...moments, ...state.customMoments.map((moment) => ["TBD", moment, "Added to your celebration timeline"])];
   entries.forEach(([timeText, titleText, detailText]) => {
     const item = document.createElement("li");
@@ -598,8 +665,14 @@ document.querySelector("#save-idea").addEventListener("click", (event) => {
 
 const eventDialog = document.querySelector("#event-dialog");
 let creatingEvent = false;
+let lastFocusedBeforeEventDialog = null;
 
+/**
+ * Opens the event editing or creation modal dialog with focus management.
+ * @param {boolean} [createNew=false] - True to create a new event.
+ */
 function openEventDialog(createNew = false) {
+  lastFocusedBeforeEventDialog = document.activeElement;
   creatingEvent = createNew;
   const titleFirst = document.querySelector("#dialog-title-first");
   const titleSecond = document.querySelector("#dialog-title-second");
@@ -614,9 +687,15 @@ function openEventDialog(createNew = false) {
   document.querySelector("#event-name").focus();
 }
 
+eventDialog.addEventListener("close", () => {
+  if (lastFocusedBeforeEventDialog && typeof lastFocusedBeforeEventDialog.focus === "function") {
+    lastFocusedBeforeEventDialog.focus();
+  }
+});
+
 document.querySelector("#new-event-link").addEventListener("click", () => openEventDialog(true));
 document.querySelector("#new-event-shortcut").addEventListener("click", () => openEventDialog(true));
-document.querySelector("#edit-event-button").addEventListener("click", openEventDialog);
+document.querySelector("#edit-event-button").addEventListener("click", () => openEventDialog(false));
 document.querySelector("#close-dialog").addEventListener("click", () => eventDialog.close());
 document.querySelector("#cancel-event-dialog").addEventListener("click", () => eventDialog.close());
 document.querySelector("#event-form").addEventListener("submit", (event) => {
@@ -660,18 +739,29 @@ document.querySelector("#event-form").addEventListener("submit", (event) => {
   persistState();
   renderDashboard();
   eventDialog.close();
-  closeMobileNavigation();
+  closeMobileNavigation(false);
   announce("Your event details are saved.");
 });
 
 const budgetDialog = document.querySelector("#budget-dialog");
+let lastFocusedBeforeBudgetDialog = null;
 
+/**
+ * Opens the budget editing modal dialog with focus management.
+ */
 function openBudgetDialog() {
+  lastFocusedBeforeBudgetDialog = document.activeElement;
   document.querySelector("#budget-total-input").value = state.budget.total;
   document.querySelector("#budget-spent-input").value = state.budget.spent;
   budgetDialog.showModal();
   document.querySelector("#budget-total-input").focus();
 }
+
+budgetDialog.addEventListener("close", () => {
+  if (lastFocusedBeforeBudgetDialog && typeof lastFocusedBeforeBudgetDialog.focus === "function") {
+    lastFocusedBeforeBudgetDialog.focus();
+  }
+});
 
 document.querySelector("#budget-edit-button").addEventListener("click", openBudgetDialog);
 document.querySelector("#close-budget-dialog").addEventListener("click", () => budgetDialog.close());
@@ -695,7 +785,7 @@ document.querySelector("#budget-form").addEventListener("submit", (event) => {
 });
 
 document.querySelector("#share-button").addEventListener("click", async () => {
-  const summary = `${state.event.name} · ${state.event.kind}\n${new Intl.DateTimeFormat(undefined, { dateStyle: "long" }).format(new Date(`${state.event.date}T12:00:00`))} · ${state.event.location || "Location to be decided"}\n${state.event.guests.toLocaleString()} guests invited`;
+  const summary = `${state.event.name} · ${state.event.kind}\n${longDateFormatter.format(new Date(`${state.event.date}T12:00:00`))} · ${state.event.location || "Location to be decided"}\n${state.event.guests.toLocaleString()} guests invited`;
   if (navigator.share) {
     try {
       await navigator.share({ title: state.event.name, text: summary });
@@ -714,6 +804,10 @@ document.querySelector("#share-button").addEventListener("click", async () => {
 
 const mobileMenu = document.querySelector("#mobile-menu");
 
+/**
+ * Closes the slide-over mobile navigation sidebar.
+ * @param {boolean} [focusMenu=true] - True to return focus to hamburger trigger.
+ */
 function closeMobileNavigation(focusMenu = true) {
   const sidebar = document.querySelector("#sidebar");
   const wasOpen = sidebar.classList.contains("open");
@@ -734,6 +828,9 @@ document.querySelectorAll(".sidebar a").forEach((link) => link.addEventListener(
 
 document.querySelector("#event-guests").addEventListener("input", (event) => event.currentTarget.setCustomValidity(""));
 
+/**
+ * Checks backend AI provider availability and updates interface badge.
+ */
 async function checkAiAvailability() {
   try {
     const response = await fetch("/api/status", { signal: AbortSignal.timeout(3000) });

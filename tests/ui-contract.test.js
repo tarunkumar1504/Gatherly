@@ -34,3 +34,19 @@ test("the interface keeps keyboard focus, screen-reader progress, and motion pre
   assert.match(html, /role="status"/);
   assert.match(html, /aria-controls="sidebar"/);
 });
+
+test("accessibility landmarks, skip links, and dialog attributes satisfy WCAG standards", () => {
+  assert.match(html, /<a\s+href="#overview"\s+class="skip-link">Skip to main content<\/a>/);
+  assert.match(html, /<main[^>]+id="overview"[^>]+tabindex="-1"/);
+  assert.match(html, /<footer[^>]+role="contentinfo"/);
+  assert.match(html, /<dialog[^>]+id="event-dialog"[^>]+aria-modal="true"/);
+  assert.match(html, /<dialog[^>]+id="budget-dialog"[^>]+aria-modal="true"/);
+
+  const h1Count = [...html.matchAll(/<h1\b/gi)].length;
+  assert.equal(h1Count, 1, "There must be exactly one <h1> element on the page.");
+
+  const inputs = [...html.matchAll(/<(?:input|select)\s+id="([^"]+)"/g)].map((m) => m[1]);
+  inputs.forEach((id) => {
+    assert.match(html, new RegExp(`<label[^>]+for="${id}"`), `Input #${id} must have an associated label.`);
+  });
+});

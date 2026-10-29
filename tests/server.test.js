@@ -29,6 +29,8 @@ test("idea requests enforce field types, allowed event kinds, and bounds", () =>
   assert.equal(isValidIdeaRequest({ ...validRequest, guests: -1 }), false);
   assert.equal(isValidIdeaRequest({ ...validRequest, date: "2026-02-31" }), false);
   assert.equal(isValidIdeaRequest({ ...validRequest, name: "x".repeat(61) }), false);
+  assert.equal(isValidIdeaRequest({ ...validRequest, budget: [] }), false);
+  assert.equal(isValidIdeaRequest({ ...validRequest, budget: { total: -1, spent: 0 } }), false);
   assert.equal(isValidIdeaRequest(null), false);
 });
 
@@ -52,11 +54,35 @@ test("server provides safe headers, serves only public app assets, and reports h
     ]);
     assert.equal(page.status, 200);
     assert.match(page.headers.get("content-security-policy"), /default-src 'self'/);
+    assert.equal(page.headers.get("cross-origin-opener-policy"), "same-origin");
+    assert.equal(page.headers.get("cross-origin-resource-policy"), "same-origin");
+    assert.equal(page.headers.get("x-permitted-cross-domain-policies"), "none");
     assert.equal(status.status, 200);
     assert.deepEqual(await status.json(), { aiConfigured: false });
     assert.equal(missing.status, 404);
     assert.equal(source.status, 404);
     assert.equal(tests.status, 404);
+  });
+});
+
+test("server handles HEAD requests, path errors, and unsupported methods appropriately", async () => {
+  await withServer({}, async (base) => {
+    const headResponse = await fetch(`${base}/index.html`, { method: "HEAD" });
+    assert.equal(headResponse.status, 200);
+    assert.equal(await headResponse.text(), "");
+
+    const postStatic = await fetch(`${base}/index.html`, { method: "POST" });
+    assert.equal(postStatic.status, 405);
+    assert.equal(postStatic.headers.get("allow"), "GET, HEAD");
+
+    const postStatus = await fetch(`${base}/api/status`, { method: "POST" });
+    assert.equal(postStatus.status, 405);
+
+    const unknownApi = await fetch(`${base}/api/nonexistent`);
+    assert.equal(unknownApi.status, 404);
+
+    const malformedUrl = await fetch(`${base}/%E0%A4%A`);
+    assert.equal(malformedUrl.status, 400);
   });
 });
 
@@ -147,5 +173,19 @@ test("AI proxy keeps its API key server-side and validates provider output", asy
     assert.equal(providerRequest.url, "https://api.openai.com/v1/chat/completions");
     assert.match(providerRequest.init.headers.Authorization, /^Bearer server-only-test-key$/);
     assert.equal(response.headers.get("access-control-allow-origin"), null);
+  });
+});
+
+test("AI proxy returns 502 Bad Gateway when upstream provider fails", async () => {
+  await withServer({
+    apiKey: "test-key",
+    fetchImpl: async () => new Response("Internal Server Error", { status: 500 }),
+  }, async (base) => {
+    const response = await fetch(`${base}/api/ideas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(validRequest),
+    });
+    assert.equal(response.status, 502);
   });
 });

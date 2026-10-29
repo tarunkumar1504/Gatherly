@@ -9,10 +9,20 @@
   const MAX_EVENT_NAME = 60;
   const MAX_LOCATION = 100;
   const MAX_TASKS = 40;
+  const MAX_TASK_TITLE = 80;
   const MAX_MOMENTS = 30;
+  const MAX_MOMENT_TITLE = 100;
   const MAX_BUDGET = 10000000;
+  const MAX_SAVED_IDEAS = 20;
+  const MAX_SAVED_IDEA_LENGTH = 800;
+  const MAX_WORKSPACE_EVENTS = 20;
+  const MAX_VENDOR_SLOTS = 5;
   const EVENT_KINDS = ["Birthday", "Wedding", "Community event", "Baby shower", "Other celebration"];
 
+  /**
+   * Generates a pristine initial event plan state.
+   * @returns {Object} Default event plan state.
+   */
   function createInitialState() {
     return {
       version: 1,
@@ -34,26 +44,42 @@
     };
   }
 
+  /**
+   * Validates whether a value is an ISO YYYY-MM-DD calendar date.
+   * @param {unknown} value - Value to test.
+   * @returns {boolean} True if valid calendar date string.
+   */
   function isValidDate(value) {
     if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     const date = new Date(`${value}T00:00:00Z`);
     return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
   }
 
+  /**
+   * Trims string and clamps to maximum allowed length.
+   * @param {unknown} value - Input string candidate.
+   * @param {number} maxLength - Maximum allowable length.
+   * @returns {string} Cleaned, bounded string.
+   */
   function cleanText(value, maxLength) {
     return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
   }
 
+  /**
+   * Sanitizes untrusted event plan input and enforces schema invariants.
+   * @param {unknown} input - Raw user or stored state.
+   * @returns {Object} Validated, normalized event state.
+   */
   function sanitizeState(input) {
     const defaults = createInitialState();
     if (!input || typeof input !== "object" || Array.isArray(input)) return defaults;
 
-    const event = input.event && typeof input.event === "object" ? input.event : {};
-    const budget = input.budget && typeof input.budget === "object" ? input.budget : {};
+    const event = input.event && typeof input.event === "object" && !Array.isArray(input.event) ? input.event : {};
+    const budget = input.budget && typeof input.budget === "object" && !Array.isArray(input.budget) ? input.budget : {};
     const completedTasks = {};
     if (input.completedTasks && typeof input.completedTasks === "object" && !Array.isArray(input.completedTasks)) {
       Object.entries(input.completedTasks).slice(0, MAX_TASKS).forEach(([name, done]) => {
-        const title = cleanText(name, 80);
+        const title = cleanText(name, MAX_TASK_TITLE);
         if (title && typeof done === "boolean") {
           Object.defineProperty(completedTasks, title, { value: done, enumerable: true, configurable: true, writable: true });
         }
@@ -61,13 +87,13 @@
     }
 
     const customTasks = Array.isArray(input.customTasks)
-      ? input.customTasks.slice(0, MAX_TASKS).map((task) => cleanText(task, 80)).filter(Boolean)
+      ? input.customTasks.slice(0, MAX_TASKS).map((task) => cleanText(task, MAX_TASK_TITLE)).filter(Boolean)
       : [];
     const customMoments = Array.isArray(input.customMoments)
-      ? input.customMoments.slice(0, MAX_MOMENTS).map((moment) => cleanText(moment, 100)).filter(Boolean)
+      ? input.customMoments.slice(0, MAX_MOMENTS).map((moment) => cleanText(moment, MAX_MOMENT_TITLE)).filter(Boolean)
       : [];
     const savedIdeas = Array.isArray(input.savedIdeas)
-      ? input.savedIdeas.slice(0, 20).map((idea) => cleanText(idea, 800)).filter(Boolean)
+      ? input.savedIdeas.slice(0, MAX_SAVED_IDEAS).map((idea) => cleanText(idea, MAX_SAVED_IDEA_LENGTH)).filter(Boolean)
       : [];
 
     return {
@@ -95,12 +121,17 @@
       customTasks,
       customMoments,
       vendorsBooked: Array.isArray(input.vendorsBooked)
-        ? input.vendorsBooked.slice(0, 5).map((value) => value === true)
+        ? input.vendorsBooked.slice(0, MAX_VENDOR_SLOTS).map((value) => value === true)
         : defaults.vendorsBooked,
       savedIdeas,
     };
   }
 
+  /**
+   * Safely loads an event state from a web storage implementation.
+   * @param {{ getItem: (key: string) => string|null }} storage - Storage mechanism.
+   * @returns {Object} Validated event state.
+   */
   function loadState(storage) {
     try {
       const raw = storage.getItem(STORAGE_KEY);
@@ -110,10 +141,19 @@
     }
   }
 
+  /**
+   * Persists an event state to web storage.
+   * @param {{ setItem: (key: string, value: string) => void }} storage - Storage mechanism.
+   * @param {Object} state - State to serialize.
+   */
   function saveState(storage, state) {
     storage.setItem(STORAGE_KEY, JSON.stringify(sanitizeState(state)));
   }
 
+  /**
+   * Generates a community block party starter plan.
+   * @returns {Object} Community celebration state.
+   */
   function createCommunityEvent() {
     return {
       ...createInitialState(),
@@ -135,6 +175,10 @@
     };
   }
 
+  /**
+   * Generates default multi-event workspace.
+   * @returns {Object} Workspace with default events.
+   */
   function createInitialWorkspace() {
     return {
       version: 1,
@@ -143,6 +187,11 @@
     };
   }
 
+  /**
+   * Normalizes a multi-event workspace and migrates legacy single-event saves.
+   * @param {unknown} input - Raw workspace or legacy event save.
+   * @returns {Object} Validated workspace object.
+   */
   function sanitizeWorkspace(input) {
     const defaults = createInitialWorkspace();
     if (!input || typeof input !== "object" || Array.isArray(input)) return defaults;
@@ -151,7 +200,7 @@
       return { version: 1, activeEventId: migratedPlan.id, events: [migratedPlan] };
     }
     const seen = new Set();
-    const events = input.events.slice(0, 20).map((event, index) => {
+    const events = input.events.slice(0, MAX_WORKSPACE_EVENTS).map((event, index) => {
       const plan = sanitizeState(event);
       let id = plan.id;
       let suffix = 1;
@@ -170,6 +219,11 @@
     return { version: 1, activeEventId, events };
   }
 
+  /**
+   * Loads workspace from storage with fallback.
+   * @param {{ getItem: (key: string) => string|null }} storage - Storage mechanism.
+   * @returns {Object} Validated workspace.
+   */
   function loadWorkspace(storage) {
     try {
       const raw = storage.getItem(STORAGE_KEY);
@@ -179,10 +233,21 @@
     }
   }
 
+  /**
+   * Saves workspace to storage.
+   * @param {{ setItem: (key: string, value: string) => void }} storage - Storage mechanism.
+   * @param {Object} workspace - Workspace to serialize.
+   */
   function saveWorkspace(storage, workspace) {
     storage.setItem(STORAGE_KEY, JSON.stringify(sanitizeWorkspace(workspace)));
   }
 
+  /**
+   * Instantiates a new celebration plan.
+   * @param {Object} event - Event descriptor.
+   * @param {string} id - Unique event identifier.
+   * @returns {Object} New event plan state.
+   */
   function createEventPlan(event, id) {
     const safeEvent = sanitizeState({ event }).event;
     return {
@@ -205,11 +270,26 @@
     };
   }
 
+  /**
+   * Computes budget percentage spent, bounded between 0 and 100.
+   * @param {number} spent - Amount spent.
+   * @param {number} total - Total budget.
+   * @returns {number} Percentage (0-100).
+   */
   function getBudgetProgress(spent, total) {
-    if (total <= 0) return spent > 0 ? 100 : 0;
-    return Math.min(100, Math.round((spent / total) * 100));
+    if (!Number.isFinite(total) || total <= 0) {
+      return Number.isFinite(spent) && spent > 0 ? 100 : 0;
+    }
+    if (!Number.isFinite(spent) || spent <= 0) return 0;
+    return Math.max(0, Math.min(100, Math.round((spent / total) * 100)));
   }
 
+  /**
+   * Computes calendar days from today until an event date.
+   * @param {string} date - ISO date string (YYYY-MM-DD).
+   * @param {Date} [today] - Reference date (defaults to current date).
+   * @returns {number|null} Whole days count or null if date is invalid.
+   */
   function daysUntil(date, today) {
     if (!isValidDate(date)) return null;
     const currentDate = today || new Date();
@@ -218,6 +298,13 @@
     return Math.round((eventUtc - currentUtc) / 86400000);
   }
 
+  /**
+   * Retrieves a curated, deterministic celebration idea based on event attributes.
+   * @param {Object} event - Event descriptor.
+   * @param {Object} [budget] - Event budget.
+   * @param {number} [index=0] - Offset index for cycling suggestions.
+   * @returns {{ text: string, tags: string[], source: "curated" }} Structured suggestion.
+   */
   function getCuratedIdea(event, budget, index = 0) {
     const safeEvent = sanitizeState({ event, budget }).event;
     const name = safeEvent.name;
@@ -270,8 +357,9 @@
       },
     };
     const selection = ideasByKind[safeEvent.kind] || ideasByKind["Other celebration"];
-    const normalizedIndex = Number.isInteger(index) && index >= 0 ? index : 0;
-    return { text: selection.texts[normalizedIndex % selection.texts.length], tags: selection.tags, source: "curated" };
+    const len = selection.texts.length;
+    const normalizedIndex = Number.isInteger(index) ? ((index % len) + len) % len : 0;
+    return { text: selection.texts[normalizedIndex], tags: selection.tags, source: "curated" };
   }
 
   return Object.freeze({
