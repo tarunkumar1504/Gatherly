@@ -11,7 +11,6 @@
     <script src="app.js" defer></script>
   </head>
   <body>
-    <a href="#overview" class="skip-link">Skip to main content</a>
     <div class="app-shell">
       <aside class="sidebar" id="sidebar">
         <a class="brand" href="#" aria-label="Gatherly home">
@@ -61,7 +60,7 @@
         </div>
       </aside>
 
-      <main class="main-content" id="overview" tabindex="-1">
+      <main class="main-content" id="overview">
         <header class="topbar">
           <button class="mobile-menu icon-button" type="button" id="mobile-menu" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -226,12 +225,12 @@
               </ul>
             </section>
           </div>
-          <footer class="page-footer" role="contentinfo"><span>Made for getting together <span aria-hidden="true">♥</span></span><span>Need a hand? <a href="mailto:hello@gatherly.example">We’re all ears</a></span></footer>
+          <footer class="page-footer"><span>Made for getting together <span aria-hidden="true">♥</span></span><span>Need a hand? <a href="mailto:hello@gatherly.example">We’re all ears</a></span></footer>
         </div>
       </main>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <dialog class="event-dialog" id="event-dialog" aria-labelledby="dialog-title" aria-modal="true">
+    <dialog class="event-dialog" id="event-dialog" aria-labelledby="dialog-title">
       <form id="event-form">
         <button class="dialog-close" type="button" id="close-dialog" aria-label="Close dialog">×</button>
         <div class="dialog-spark" aria-hidden="true">✳</div>
@@ -250,7 +249,7 @@
         <div class="dialog-actions"><button class="secondary-button" type="button" id="cancel-event-dialog">Cancel</button><button class="primary-button" type="submit">Save event <span aria-hidden="true">→</span></button></div>
       </form>
     </dialog>
-    <dialog class="event-dialog" id="budget-dialog" aria-labelledby="budget-dialog-title" aria-modal="true">
+    <dialog class="event-dialog" id="budget-dialog" aria-labelledby="budget-dialog-title">
       <form id="budget-form">
         <button class="dialog-close" type="button" id="close-budget-dialog" aria-label="Close budget dialog">×</button>
         <div class="dialog-spark" aria-hidden="true">✳</div>
